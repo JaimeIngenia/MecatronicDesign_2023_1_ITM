@@ -15,7 +15,8 @@ enum estados
   EST_APAGADO,
   EST_CERRADO,
   //
-  EST_DETECCION
+  EST_DETECCION,
+  EST_DET_PIEZA_S1
 };
 
 // DEFINICION PARA EL SWITCH CASE
@@ -25,8 +26,8 @@ int estado_anterior = EST_APAGADO;
 //DEFINICION PARA MOTORES
 int IN1 = 2;
 int IN2 = 3;
-int ENA = 11;  
-int ENB = 10;  
+int ENA = 10;  
+int ENB = 11;  
 
 //DEFINICION INFRARROJO
 infrarrojo estado_a(9);                 
@@ -81,9 +82,14 @@ void loop() {
       detectar_objeto();
       break;
 
+      case EST_DET_PIEZA_S1:
+      detectar_objeto_inicio();
+      Serial.println("Caso3");
+      break;
+
 
       case EST_CERRADO:
-      Serial.println("Caso3");
+      Serial.println("Caso Final");
       apagarMotorA();
       break;
 
@@ -129,19 +135,17 @@ void encenderMotorA()
   if(estado_actual == EST_DETECCION_MOTOR_A)
   {
   analogWrite(ENA,70);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  
+
   encenderLed();
   delay(5000);
   
-  encenderVentilador();
   encenderValvula();
   encenderMotorB();
-  //analogWrite(ENB,70);
-  encenderMotorB();
-  delay(5000);
+  encenderVentilador();
+  
+  //delay(5000);
   estado_actual = EST_DETECCION;//*********************************************************************************************************************
+  
   }
 }
 //*********************************************************************************************************************ONTERMEDIO
@@ -152,10 +156,25 @@ void detectar_objeto(){
   {
     if(estado_a.lectura(VALOR_a) == 0)
     {
+      
       apagarMotorB();
-      estado_actual = EST_CERRADO;   
+      apagarValvula();
+      estado_actual = EST_DET_PIEZA_S1;   
     }
   }    
+}
+
+void detectar_objeto_inicio(){
+  if (estado_actual == EST_DET_PIEZA_S1)
+  {
+    //cambiar marcha motor b
+    cambiarMarchaMotorB();
+
+    if(estado_b.lectura(VALOR_b) == 0)
+    {
+      estado_actual = EST_CERRADO;   
+    }    
+  }
 }
 
 //*********************************************************************************************************************ESTADO CERRADO
@@ -165,12 +184,12 @@ void apagarMotorA()
 {
   if(estado_actual == EST_CERRADO)//*********************************************************************************************************************
   {
-  analogWrite(ENA,70);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
+  analogWrite(ENA,0);
+
   apagarLed();
   apagarVentilador();
-  apagarValvula();
+  apagarMotorB();
+  
   //infrarrojoJaime_a();
   estado_actual = EST_ENCENDIDO;
   }
@@ -183,13 +202,26 @@ void apagarMotorA()
 void apagarMotorB()
 {
   analogWrite(ENB,0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
 }
 
 //ENCENDER MOTOR B
 void encenderMotorB()
 {
   analogWrite(ENB,70);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
 }
+
+//CAMBIAR MARCHA MOTOR B
+void cambiarMarchaMotorB()
+{
+  analogWrite(ENB,70);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+}
+
 // APAGAR VENTILADOR
 
 void apagarVentilador()
