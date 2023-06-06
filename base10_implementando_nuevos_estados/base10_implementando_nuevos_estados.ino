@@ -137,13 +137,12 @@ void encenderMotorA()
   analogWrite(ENA,70);
 
   encenderLed();
-  delay(5000);
+  delay(3000);
   
   encenderValvula();
   encenderMotorB();
   encenderVentilador();
   
-  //delay(5000);
   estado_actual = EST_DETECCION;//*********************************************************************************************************************
   
   }
@@ -159,6 +158,7 @@ void detectar_objeto(){
       
       apagarMotorB();
       apagarValvula();
+      delay(1000);
       estado_actual = EST_DET_PIEZA_S1;   
     }
   }    
@@ -168,6 +168,7 @@ void detectar_objeto_inicio(){
   if (estado_actual == EST_DET_PIEZA_S1)
   {
     //cambiar marcha motor b
+    
     cambiarMarchaMotorB();
 
     if(estado_b.lectura(VALOR_b) == 0)
@@ -184,14 +185,14 @@ void apagarMotorA()
 {
   if(estado_actual == EST_CERRADO)//*********************************************************************************************************************
   {
+    
   analogWrite(ENA,0);
-
+  apagarMotorB();
   apagarLed();
   apagarVentilador();
-  apagarMotorB();
   
-  //infrarrojoJaime_a();
   estado_actual = EST_ENCENDIDO;
+  
   }
   
 }
